@@ -1,0 +1,2 @@
+# Real-Time-Deauthentication-Attack-Detection-in-WiFi-Networks
+Wi-Fi deauthentication attacks can silently disconnect any device on a network. This tool passively monitors 802.11 traffic in monitor mode, detects attacks using five statistical methods, and alerts a live web dashboard — including when IoT devices like IP cameras are forcibly disconnected.  Built with Python, Scapy, and Flask on Ubuntu.
